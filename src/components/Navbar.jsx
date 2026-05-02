@@ -1,49 +1,8 @@
-import { useState } from "react";
-import { LogOut, LayoutDashboard, Users, Home, ChevronDown } from "lucide-react";
+import { LogOut, LayoutDashboard, Users, Home } from "lucide-react";
 import BrandLogo from "./BrandLogo";
 import SettingsControls from "./SettingsControls";
 import { useAppSettings } from "../context/AppSettingsContext";
 import { logoutAdmin, isAdminLoggedIn } from "../utils/store";
-
-function MobilePageSelect({ value, options, onChange }) {
-  const [open, setOpen] = useState(false);
-  const current = options.find((item) => item.key === value) || options[0];
-
-  return (
-    <div className="relative min-w-[110px] max-w-[132px]">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50/95 px-3 py-2 text-left text-[12px] font-bold text-slate-700 shadow-sm transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/95 dark:text-slate-100 dark:hover:bg-slate-700"
-      >
-        <span className="truncate">{current?.label}</span>
-        <ChevronDown size={14} className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-
-      {open && (
-        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-[140] overflow-hidden rounded-2xl border border-slate-200 bg-white p-1.5 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
-          {options.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => {
-                onChange(item.key);
-                setOpen(false);
-              }}
-              className={`flex w-full items-center rounded-xl px-3 py-2.5 text-[12px] font-semibold transition-colors ${
-                item.key === current?.key
-                  ? "bg-sky-600 text-white"
-                  : "text-slate-600 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function Navbar({ page, navigate }) {
   const isAdmin = isAdminLoggedIn();
@@ -123,11 +82,17 @@ export default function Navbar({ page, navigate }) {
           </div>
 
           <div className="flex items-center gap-1.5 md:hidden shrink-0">
-            <MobilePageSelect
+            <select
               value={page}
-              options={links}
-              onChange={navigate}
-            />
+              onChange={(event) => navigate(event.target.value)}
+              className="max-w-[132px] rounded-xl border border-slate-200 bg-slate-50/95 px-3 py-2 text-[12px] font-bold text-slate-700 shadow-sm outline-none dark:border-slate-700 dark:bg-slate-800/95 dark:text-slate-100"
+            >
+              {links.map((item) => (
+                <option key={item.key} value={item.key}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
             <SettingsControls compact className="scale-[0.88]" />
           </div>
         </div>

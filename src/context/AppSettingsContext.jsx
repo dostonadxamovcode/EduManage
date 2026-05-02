@@ -1,19 +1,10 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { STATUS_KEYS, translations } from "../i18n/translations";
 
 const AppSettingsContext = createContext(null);
 
 const SETTINGS_KEY = "edu_manage_settings";
 const LOCALE_MAP = { uz: "uz-UZ", ru: "ru-RU", en: "en-US" };
-
-function getByPath(obj, path) {
-  return path.split(".").reduce((acc, key) => acc?.[key], obj);
-}
-
-function formatText(template, params) {
-  if (!params) return template;
-  return template.replace(/\{(\w+)\}/g, (_, key) => String(params[key] ?? ""));
-}
 
 function readStoredSettings() {
   if (typeof window === "undefined") {
@@ -41,36 +32,47 @@ function readStoredSettings() {
 
 export function AppSettingsProvider({ children }) {
   const [{ language, theme }, setSettings] = useState(readStoredSettings);
-  const setLanguage = (nextLanguage) => setSettings((prev) => ({ ...prev, language: nextLanguage }));
-  const setTheme = (nextTheme) => setSettings((prev) => ({ ...prev, theme: typeof nextTheme === "function" ? nextTheme(prev.theme) : nextTheme }));
+
+  function setLanguage(nextLanguage) {
+    setSettings((prev) => ({ ...prev, language: nextLanguage }));
+  }
+
+  function setTheme(nextTheme) {
+    setSettings((prev) => ({ ...prev, theme: nextTheme }));
+  }
+
+  function t(path, params) {
+    let text = path.split(".").reduce((obj, key) => obj?.[key], translations[language]);
+    text = text ?? path.split(".").reduce((obj, key) => obj?.[key], translations.uz) ?? path;
+
+    if (typeof text !== "string" || !params) return text;
+
+    Object.keys(params).forEach((key) => {
+      text = text.replaceAll(`{${key}}`, params[key]);
+    });
+
+    return text;
+  }
 
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ language, theme }));
     document.documentElement.lang = language;
     document.documentElement.classList.toggle("dark", theme === "dark");
     document.body.classList.toggle("dark", theme === "dark");
-    document.title = getByPath(translations[language], "meta.title");
+    document.title = translations[language]?.meta?.title || "EduManage";
   }, [language, theme]);
 
-  const value = useMemo(() => {
-    const current = translations[language] ?? translations.uz;
-    const t = (path, params) => {
-      const valueAtPath = getByPath(current, path) ?? getByPath(translations.uz, path) ?? path;
-      return typeof valueAtPath === "string" ? formatText(valueAtPath, params) : valueAtPath;
-    };
-
-    return {
-      language,
-      setLanguage,
-      theme,
-      setTheme,
-      toggleTheme: () => setTheme((prev) => (prev === "dark" ? "light" : "dark")),
-      locale: LOCALE_MAP[language] ?? "uz-UZ",
-      t,
-      subjectLabel: (subject) => t(`subjects.${subject}`),
-      statusLabel: (status) => t(`status.${STATUS_KEYS[status]}`),
-    };
-  }, [language, theme]);
+  const value = {
+    language,
+    setLanguage,
+    theme,
+    setTheme,
+    toggleTheme: () => setTheme(theme === "dark" ? "light" : "dark"),
+    locale: LOCALE_MAP[language] ?? "uz-UZ",
+    t,
+    subjectLabel: (subject) => t(`subjects.${subject}`),
+    statusLabel: (status) => t(`status.${STATUS_KEYS[status]}`),
+  };
 
   return <AppSettingsContext.Provider value={value}>{children}</AppSettingsContext.Provider>;
 }

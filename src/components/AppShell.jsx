@@ -2,52 +2,12 @@ import { useState } from "react";
 import {
   Users, BookOpen, DollarSign,
   TrendingUp, Inbox, Settings, LogOut,
-  Bell, Mail, ChevronsLeft, ChevronsRight, ChevronDown, ArrowLeft
+  Bell, Mail, ChevronsLeft, ChevronsRight, ArrowLeft
 } from "lucide-react";
 import BrandLogo from "./BrandLogo";
 import SettingsControls from "./SettingsControls";
 import { useAppSettings } from "../context/AppSettingsContext";
 import { logoutAdmin, isAdminLoggedIn } from "../utils/store";
-
-function MobilePageSelect({ value, options, onChange }) {
-  const [open, setOpen] = useState(false);
-  const current = options.find((item) => item.key === value) || options[0];
-
-  return (
-    <div className="relative min-w-0 flex-1">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between rounded-xl border border-stone-200 bg-stone-50/95 px-3 py-2 text-left text-[13px] font-bold text-stone-700 shadow-sm transition-colors hover:bg-stone-100 dark:border-slate-700 dark:bg-slate-800/95 dark:text-slate-100 dark:hover:bg-slate-700"
-      >
-        <span className="truncate">{current?.label}</span>
-        <ChevronDown size={15} className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-
-      {open && (
-        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-[140] overflow-hidden rounded-2xl border border-stone-200 bg-white p-1.5 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
-          {options.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => {
-                onChange(item.key);
-                setOpen(false);
-              }}
-              className={`flex w-full items-center rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-colors ${
-                item.key === current?.key
-                  ? "bg-brand-500 text-white"
-                  : "text-stone-600 hover:bg-stone-50 dark:text-slate-200 dark:hover:bg-slate-800"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function AppShell({ page, navigate, children }) {
   const [sideCollapsed, setSideCollapsed] = useState(false);
@@ -216,11 +176,17 @@ export default function AppShell({ page, navigate, children }) {
               </div>
             </div>
             <div className="md:hidden min-w-0 flex-1 max-w-[170px]">
-              <MobilePageSelect
+              <select
                 value={mobileNav.some((item) => item.key === page) ? page : mobileNav[0]?.key}
-                options={mobileNav}
-                onChange={navigate}
-              />
+                onChange={(event) => navigate(event.target.value)}
+                className="w-full rounded-xl border border-stone-200 bg-stone-50/95 px-3 py-2 text-[13px] font-bold text-stone-700 shadow-sm outline-none dark:border-slate-700 dark:bg-slate-800/95 dark:text-slate-100"
+              >
+                {mobileNav.map((item) => (
+                  <option key={item.key} value={item.key}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
